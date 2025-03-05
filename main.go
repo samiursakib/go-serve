@@ -29,7 +29,7 @@ func main() {
 
 	router.GET("/users/:id", func(c *gin.Context) {
 		id := c.Param("id")
-		user := findUserById(id, users)
+		user := findUserById(id, &users)
 		if user == nil {
 			c.JSON(http.StatusNotFound, gin.H{
 				"message": "No user found",
@@ -60,7 +60,7 @@ func main() {
 			})
 			return
 		}
-		user := findUserById(id, users)
+		user := findUserById(id, &users)
 		if user == nil {
 			c.JSON(http.StatusNotFound, gin.H{
 				"message": "No user found to update",
@@ -76,13 +76,33 @@ func main() {
 		})
 	})
 
+	router.DELETE("/users", func (c *gin.Context) {
+		id := c.Query("id")
+		if existingUser := findUserById(id, &users); existingUser == nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"message": "User not found",
+			})
+			return
+		}
+		newUsers := []User{}
+		for i := range users {
+			if users[i].Id != id {
+				newUsers = append(newUsers, users[i])
+			}
+		}
+		users = newUsers
+		c.JSON(http.StatusOK, gin.H{
+			"message": "User deleted successfully",
+		})
+	})
+
 	router.Run("localhost:8080")
 }
 
-func findUserById(id string, users []User) *User {
-	for _, user := range users {
-		if user.Id == id {
-			return &user
+func findUserById(id string, users *[]User) *User {
+	for i := range *users {
+		if (*users)[i].Id == id {
+			return &(*users)[i]
 		}
 	}
 	return nil
