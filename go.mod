@@ -1,4 +1,4 @@
-module learn-go
+module go-serve
 
 go 1.23.6
 
